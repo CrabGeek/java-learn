@@ -135,4 +135,33 @@ public class CreateTreadPoolDemo {
 
         pool.shutdown();
     }
+
+    // 自定义个线程工厂
+    static public class SimpleThreadFactory implements ThreadFactory {
+
+        static AtomicInteger threadNo = new AtomicInteger(1);
+
+        @Override
+        public Thread newThread(Runnable r) {
+            String threadName = "SimpleThread-" + threadNo.get();
+            System.out.println("创建一个线程, 名称为: " + threadName);
+            threadNo.incrementAndGet();
+            Thread thread = new Thread(r, threadName);
+            thread.setDaemon(true);
+            return thread;
+        }
+    }
+
+    // 测试线程工厂
+    @Test
+    @SneakyThrows
+    public void testThreadFactory() {
+        ExecutorService threadPool = Executors.newFixedThreadPool(2, new SimpleThreadFactory());
+        for (int i = 0; i < 5; i++) {
+            threadPool.submit(new TargetTask());
+        }
+        Thread.sleep(10000);
+        System.out.println("关闭线程池");
+        threadPool.shutdown();
+    }
 }
