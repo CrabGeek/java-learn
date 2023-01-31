@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 
+import java.time.Instant;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -163,5 +164,39 @@ public class CreateTreadPoolDemo {
         Thread.sleep(10000);
         System.out.println("关闭线程池");
         threadPool.shutdown();
+    }
+
+    // 测试ThreadPoolHook，线程池回调方法测试
+    @Test
+    @SneakyThrows
+    public void testThreadPoolHook () {
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(2, 4, 60, TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>(2)) {
+            private ThreadLocal<Long> startTime = new ThreadLocal<>();
+            @Override
+            protected void terminated() {
+                System.out.println("线程池已终止");
+            }
+
+            @Override
+            protected void beforeExecute(Thread t, Runnable r) {
+                System.out.println(r + "前钩子被执行");
+                startTime.set(System.currentTimeMillis());
+            }
+
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                long time = System.currentTimeMillis() - startTime.get();
+                System.out.println("后钩子被执行, 执行时间: " + time);
+            }
+        };
+
+        for (int i = 0; i < 5; i++) {
+            pool.execute(new TargetTask());
+        }
+
+        Thread.sleep(10000);
+        System.out.println("关闭线程池");
+        pool.shutdown();
     }
 }
