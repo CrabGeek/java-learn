@@ -199,4 +199,34 @@ public class CreateTreadPoolDemo {
         System.out.println("关闭线程池");
         pool.shutdown();
     }
+
+    public static class CustomIgnorePolicy implements RejectedExecutionHandler {
+
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            System.out.println(r + " rejected; " + "- getTaskCount: " + executor.getTaskCount());
+        }
+    }
+
+    @Test
+    @SneakyThrows
+    public void testCustomIgnorePolicy() {
+        int corePoolSize = 2;
+        int maxPoolSize = 4;
+        TimeUnit unit = TimeUnit.SECONDS;
+        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(2);
+        CustomIgnorePolicy customIgnorePolicy = new CustomIgnorePolicy();
+        SimpleThreadFactory simpleThreadFactory = new SimpleThreadFactory();
+        ThreadPoolExecutor poolExecutor =
+                new ThreadPoolExecutor(corePoolSize, maxPoolSize, 10, unit, workQueue, simpleThreadFactory, customIgnorePolicy);
+
+        poolExecutor.prestartAllCoreThreads();
+
+        for (int i = 0; i < 10; i++) {
+            poolExecutor.execute(new TargetTask());
+        }
+        Thread.sleep(10000);
+        System.out.println("关闭线程池");
+        poolExecutor.shutdown();
+    }
 }
