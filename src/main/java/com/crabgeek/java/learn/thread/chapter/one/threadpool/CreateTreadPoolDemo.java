@@ -138,7 +138,7 @@ public class CreateTreadPoolDemo {
     }
 
     // 自定义个线程工厂
-    static public class SimpleThreadFactory implements ThreadFactory {
+     static public class SimpleThreadFactory implements ThreadFactory {
 
         static AtomicInteger threadNo = new AtomicInteger(1);
 
